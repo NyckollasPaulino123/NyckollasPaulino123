@@ -1,0 +1,65 @@
+pip install django djangorestframework
+
+django-admin startproject myproject
+cd myproject
+
+python manage.py startapp myapp
+
+python manage.py startapp myapp
+
+INSTALLED_APPS = [
+    ...
+    'rest_framework',
+    'myapp',
+]
+
+from django.db import models
+
+class Tutorial(models.Model):
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    published = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.title
+
+python manage.py makemigrations
+python manage.py migrate
+
+from rest_framework import serializers
+from .models import Tutorial
+
+class TutorialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tutorial
+        fields = '__all__’
+
+from rest_framework import generics
+from .models import Tutorial
+from .serializers import TutorialSerializer
+
+class TutorialListCreate(generics.ListCreateAPIView):
+    queryset = Tutorial.objects.all()
+    serializer_class = TutorialSerializer
+
+class TutorialDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Tutorial.objects.all()
+    serializer_class = TutorialSerializer
+
+from django.urls import path
+from .views import TutorialListCreate, TutorialDetail
+
+urlpatterns = [
+    path('tutorials/', TutorialListCreate.as_view(), name='tutorial-list-create'),
+    path('tutorials/<int:pk>/', TutorialDetail.as_view(), name='tutorial-detail'),
+]
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include('myapp.urls')),
+]
+
+python manage.py runserver;
